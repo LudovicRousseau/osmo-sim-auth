@@ -179,19 +179,19 @@ class ISO7816(object):
         
         check also the more complete "parseATR" tool
         '''
-        print '\nsmartcard reader: ', self.reader
+        print('\nsmartcard reader: ', self.reader)
         if self.ATR != None:
-            print "\nsmart card ATR is: %s" % toHexString(self.ATR)
-            print 'ATR analysis: '
-            print ATR(self.ATR).dump()
-            print '\nhistorical bytes: ', \
-                toHexString(ATR(self.ATR).getHistoricalBytes())
+            print("\nsmart card ATR is: %s" % toHexString(self.ATR))
+            print('ATR analysis: ')
+            print(ATR(self.ATR).dump())
+            print('\nhistorical bytes: ', \
+                toHexString(ATR(self.ATR).getHistoricalBytes()))
             ATRcs = ATR(self.ATR).getChecksum()
             if ATRcs :
-                print 'checksum: ', "0x%X" % ATRcs
+                print('checksum: ', "0x%X" % ATRcs)
             else:
-                print 'no ATR checksum'
-            print "\nusing pcsc_scan ATR list file: %s" % smlist_file
+                print('no ATR checksum')
+            print("\nusing pcsc_scan ATR list file: %s" % smlist_file)
             if os.path.exists(smlist_file):
                 smlist = open(smlist_file).readlines()
                 ATRre = re.compile('(^3[BF]){1}.{1,}$')
@@ -205,11 +205,11 @@ class ISO7816(object):
                                 ATRfinger += smlist[i+j][1:]
                                 j += j
                 if ATRfinger == '' :
-                    print "no ATR fingerprint found in file: %s" % smlist_file
+                    print("no ATR fingerprint found in file: %s" % smlist_file)
                 else:
-                    print "smartcard ATR fingerprint:\n%s" % ATRfinger
+                    print("smartcard ATR fingerprint:\n%s" % ATRfinger)
             else:
-                print "%s file not found" % smlist_file
+                print("%s file not found" % smlist_file)
     
     def sw_status(self, sw1, sw2):
         '''
@@ -332,7 +332,7 @@ class ISO7816(object):
         else:
             data, sw1, sw2 = self.cardservice.connection.transmit(apdu)
         # replaces INS code by strings when available
-        if apdu[1] in self.INS_dic.keys(): 
+        if apdu[1] in list(self.INS_dic.keys()): 
             apdu_name =  self.INS_dic[apdu[1]] + ' '
         else: 
             apdu_name = ''
@@ -360,7 +360,7 @@ class ISO7816(object):
         for i in range(start, 256):
             ret = self.sr_apdu([i] + param)
             if ret[2] != (0x6E, 0x00): 
-                print ret
+                print(ret)
                 clist.append(i)
         return clist
     
@@ -380,11 +380,11 @@ class ISO7816(object):
         ilist = []
         for i in range(start, 256):
             if self.dbg > 1: 
-                print 'DEBUG: testing %d for INS code with %d CLA code' \
-                      % (i, self.CLA)
+                print('DEBUG: testing %d for INS code with %d CLA code' \
+                      % (i, self.CLA))
             ret = self.sr_apdu([self.CLA, i, 0x00, 0x00])
             if ret[2] != (0x6D, 0x00): 
-                print ret
+                print(ret)
                 ilist.append(i)
         return ilist
     
@@ -677,10 +677,10 @@ class ISO7816(object):
         '''
         ber = BERTLV_parser( Data )
         if self.dbg > 1:
-            print '[DBG] BER structure:\n%s' % ber
+            print('[DBG] BER structure:\n%s' % ber)
         if len(ber) > 1:
             # TODO: implements recursive BER object parsing
-            print '[WNG] more than 1 BER object: %s' % ber
+            print('[WNG] more than 1 BER object: %s' % ber)
         
         # for FCP control structure, precise parsing is done
         # this structure seems to be the most used for (U)SIM cards
@@ -694,15 +694,15 @@ class ISO7816(object):
         if ber[0][0][2] == 0x4: 
             fil['Control'] = 'FMD'
             if self.dbg:
-                print '[WNG] FMD file structure parsing not implemented'
+                print('[WNG] FMD file structure parsing not implemented')
         elif ber[0][0][2] == 0xF: 
             fil['Control'] = 'FCI'
             if self.dbg:
-                print '[WNG] FCI file structure parsing not implemented'
+                print('[WNG] FCI file structure parsing not implemented')
         else: 
             fil['Control'] = ber[0][0]
             if self.dbg:
-                print '[WNG] unknown file structure'
+                print('[WNG] unknown file structure')
         fil['Data'] = ber[0][2]
         
         return fil
@@ -723,11 +723,11 @@ class ISO7816(object):
             # would require to work with the BERTLV parser...
             [T, L, V] = first_TLV_parser(toProcess)
             if self.dbg > 2:
-                if T in self.file_tags.keys(): 
+                if T in list(self.file_tags.keys()): 
                     Tag = self.file_tags[T]
                 else: 
                     Tag = T
-                print '[DBG] %s / %s: %s' % (T, Tag, V)
+                print('[DBG] %s / %s: %s' % (T, Tag, V))
             
             # do extra processing here
             # File ID, DF name, Short file id
@@ -758,7 +758,7 @@ class ISO7816(object):
             elif T == 0xA5:
                 fil = self.parse_proprietary(V, fil)
             else:
-                if T in self.file_tags.keys():
+                if T in list(self.file_tags.keys()):
                     fil[self.file_tags[T]] = V
                 else:
                     fil[T] = V
@@ -856,7 +856,7 @@ class ISO7816(object):
             }
         while len(Data) > 0:
             [T, L, V] = first_TLV_parser( Data )
-            if T in propr_tags.keys(): 
+            if T in list(propr_tags.keys()): 
                 fil[propr_tags[T]] = V
             Data = Data[L+2:]
         return fil
@@ -873,7 +873,7 @@ class ISO7816(object):
         SC = Data[1:]
         sec = '#'
         
-        if 'Type' in fil.keys():
+        if 'Type' in list(fil.keys()):
             # DF parsing
             if fil['Type'] == 'DF':
                 if AM & 0b10000000 == 0:
@@ -936,7 +936,7 @@ class ISO7816(object):
             self.coms.push( self.READ_BINARY(Le=fil['Size']) )
             if self.coms()[2] != (0x90, 0x00):
                 if self.dbg > 1: 
-                    print '[DBG] %s' % self.coms()
+                    print('[DBG] %s' % self.coms())
                 return fil
             fil['Data'] = self.coms()[3]
         
@@ -952,8 +952,8 @@ class ISO7816(object):
                     # should mean there is an issue 
                     # somewhere in the file parsing process
                     if self.dbg:
-                        print '[WNG] error in iterating the RECORD parsing at' \
-                              ' iteration %s\n%s' % (i, self.coms())
+                        print('[WNG] error in iterating the RECORD parsing at' \
+                              ' iteration %s\n%s' % (i, self.coms()))
                     return fil
                 if self.coms()[3][1:] == len(self.coms()[3][1:]) * [255]:
                     # record is empty, contains padding only
@@ -1015,7 +1015,7 @@ class ISO7816(object):
         if is_UICC and self.coms()[2][0] != 0x61 \
         or not is_UICC and self.coms()[2][0] != 0x9F:
             if self.dbg > 1: 
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
             
         # get response and check SW: 
@@ -1023,7 +1023,7 @@ class ISO7816(object):
         self.coms.push(self.GET_RESPONSE(Le=self.coms()[2][1]))
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg > 1: 
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
         
         data = self.coms()[3]
@@ -1073,10 +1073,10 @@ class ISO7816(object):
         try:
             r = self.select(MF)
         except:
-            print '[ERR] selecting MF failed'
+            print('[ERR] selecting MF failed')
             return
         if r == None:
-            print '[ERR] MF not found!'
+            print('[ERR] MF not found!')
             return
         
         #if needed, select AID
@@ -1085,10 +1085,10 @@ class ISO7816(object):
                 self.get_AID()
                 r = self.select_by_aid(under_AID)
             except:
-                print '[ERR] selecting AID failed'
+                print('[ERR] selecting AID failed')
                 return
             if r == None:
-                print '[ERR] AID not found'
+                print('[ERR] AID not found')
                 return
         
         # place on the DF path to bf
@@ -1097,10 +1097,10 @@ class ISO7816(object):
             try:
                 path_init = self.select(path, sel_type)
             except:
-                print '[ERR] selecting path failed:\n%s' % self.coms()
+                print('[ERR] selecting path failed:\n%s' % self.coms())
                 return
             if path_init == None:
-                print '[ERR] path not found: %s' % path
+                print('[ERR] path not found: %s' % path)
                 return
         
         # Dany'style programming
@@ -1115,8 +1115,8 @@ class ISO7816(object):
         i, j = 0, 0
         for i in range(hi_addr[0], hi_addr[1]):
             if self.dbg and i%2 == 0:
-                print '[DBG] addr: %s %s %s' % ([hex(v) for v in path], \
-                       hex(i), hex(j))
+                print('[DBG] addr: %s %s %s' % ([hex(v) for v in path], \
+                       hex(i), hex(j)))
             for j in range(lo_addr[0], lo_addr[1]):
                 # avoid MF re-selection:
                 if (i, j) == [0x3F, 0x00]:
@@ -1126,14 +1126,14 @@ class ISO7816(object):
                     fil = self.select([i, j], sel_type)
                 if fil is not None:
                     if self.dbg:
-                        print '[DBG] found file at path, id: ' \
-                              '%s %s' % (path, [i, j])
-                    if 'File Identifier' in fil.keys():
+                        print('[DBG] found file at path, id: ' \
+                              '%s %s' % (path, [i, j]))
+                    if 'File Identifier' in list(fil.keys()):
                         fil['Absolut Path'] = path+fil['File Identifier']
                     FS.append(fil)
-                    if 'Type' in fil.keys() and fil['Type'] == 'DF':
+                    if 'Type' in list(fil.keys()) and fil['Type'] == 'DF':
                         reinit()
-                        if 'Absolut Path' in fil.keys():
+                        if 'Absolut Path' in list(fil.keys()):
                             DF_to_explore.append(fil['Absolut Path'])
         
         # re-initialize at MF and return
@@ -1163,12 +1163,12 @@ class ISO7816(object):
         # recursive method call
         # DF contains absolut path
         for addr in DF:
-            print '[DBG] path: %s' % addr
+            print('[DBG] path: %s' % addr)
             self.recu_files_bf(path=addr, under_AID=under_AID)
     
     @staticmethod
     def __write_dict(dict, fd):
-        keys = dict.keys()
+        keys = list(dict.keys())
         keys.sort()
         fd.write('\n')
         for k in keys:
@@ -1320,8 +1320,8 @@ class UICC(ISO7816):
         self.AID = []
         
         if self.dbg:
-            print '[DBG] type definition: %s' % type(self)
-            print '[DBG] CLA definition: %s' % hex(self.CLA)
+            print('[DBG] type definition: %s' % type(self))
+            print('[DBG] CLA definition: %s' % hex(self.CLA))
             #print '[DBG] EF_DIR file selection and reading...'
     
     def parse_file(self, Data=[]):
@@ -1338,11 +1338,11 @@ class UICC(ISO7816):
         fil = ISO7816.parse_file(self, Data)
         
         # Then UICC extra attributes parsing
-        if 0xC6 in fil.keys():
+        if 0xC6 in list(fil.keys()):
             fil = self.parse_pin_status(fil[0xC6], fil)
             del fil[0xC6]
         
-        if 'File Identifier' in fil.keys():
+        if 'File Identifier' in list(fil.keys()):
             for ref in self.files:
                 if fil['File Identifier'] == ref[0]:
                     fil['Name'] = ref[2]
@@ -1410,7 +1410,7 @@ class UICC(ISO7816):
         # EF_DIR is at the MF level and contains Application ID:
         EF_DIR = self.select([0x2F, 0x00], typ='pmf')
         if self.dbg: 
-            print '[DBG] EF_DIR: %s' % EF_DIR
+            print('[DBG] EF_DIR: %s' % EF_DIR)
         if EF_DIR is None: 
             return None
         
@@ -1430,22 +1430,22 @@ class UICC(ISO7816):
             
             # get AID application code, depending on SDO...
             if aid_rid == (0xA0, 0x00, 0x00, 0x00, 0x09) \
-            and aid_app in self.ETSI_AID_app_code.keys(): 
+            and aid_app in list(self.ETSI_AID_app_code.keys()): 
                 aid_app = self.ETSI_AID_app_code[aid_app]
             if aid_rid == (0xA0, 0x00, 0x00, 0x00, 0x87) \
-            and aid_app in self.GPP_AID_app_code.keys(): 
+            and aid_app in list(self.GPP_AID_app_code.keys()): 
                 aid_app = self.GPP_AID_app_code[aid_app]
             if aid_rid == (0xA0, 0x00, 0x00, 0x03, 0x43) \
-            and aid_app in self.GPP2_AID_app_code.keys(): 
+            and aid_app in list(self.GPP2_AID_app_code.keys()): 
                 aid_app = self.GPP2_AID_app_code[aid_app]
             # get AID responsible SDO and country
-            if aid_rid in self.AID_RID.keys(): aid_rid = self.AID_RID[aid_rid]
-            if aid_country in self.AID_country_code.keys(): 
+            if aid_rid in list(self.AID_RID.keys()): aid_rid = self.AID_RID[aid_rid]
+            if aid_country in list(self.AID_country_code.keys()): 
                 aid_country = self.AID_country_code[aid_country]
             
-            print 'found [AID %s] %s || %s || %s || %s || %s' \
+            print('found [AID %s] %s || %s || %s || %s || %s' \
                   % (i, aid_rid, aid_app, aid_country, \
-                     aid_provider, tuple(aid[11:]) )
+                     aid_provider, tuple(aid[11:]) ))
             i += 1
     
     def get_ICCID(self):
@@ -1459,7 +1459,7 @@ class UICC(ISO7816):
         # EF_ICCID is at the MF level and contains Application ID:
         EF_ICCID = self.select([0x2F, 0xE2], typ='pmf')
         if self.dbg: 
-            print '[DBG] EF_ICCID: %s' % EF_ICCID
+            print('[DBG] EF_ICCID: %s' % EF_ICCID)
         if EF_ICCID is None: 
             return None
         return decode_BCD( EF_ICCID['Data'] )
