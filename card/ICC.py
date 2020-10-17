@@ -945,7 +945,7 @@ class ISO7816(object):
             fil['Data'] = []
             # for record data: need to check the number of recordings
             # stored in the file, and iterate for each
-            for i in range( (fil['Size'] / fil['Record Length']) ):
+            for i in range( (fil['Size'] // fil['Record Length']) ):
                 self.coms.push( self.READ_RECORD(P1=i+1, P2=0x04, \
                     Le=fil['Record Length']) )
                 if self.coms()[2] != (0x90, 0x00):
