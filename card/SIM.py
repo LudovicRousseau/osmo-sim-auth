@@ -48,8 +48,8 @@ class SIM(ISO7816):
         '''
         ISO7816.__init__(self, CLA=0xA0)
         if self.dbg:
-            print '[DBG] type definition: %s' % type(self)
-            print '[DBG] CLA definition: %s' % hex(self.CLA)
+            print('[DBG] type definition: %s' % type(self))
+            print('[DBG] CLA definition: %s' % hex(self.CLA))
         
         self.caller = {
         'KC' : self.get_Kc,
@@ -121,7 +121,7 @@ class SIM(ISO7816):
             self.coms.push( self.VERIFY(P2=pin_type, Data=PIN) )
         else: 
             if self.dbg: 
-                print '[WNG] bad parameters'
+                print('[WNG] bad parameters')
     
     def disable_pin(self, pin='', pin_type=1):
         '''
@@ -136,7 +136,7 @@ class SIM(ISO7816):
             self.coms.push( self.DISABLE_CHV(P2=pin_type, Data=PIN) )
         else:
             if self.dbg: 
-                print '[WNG] bad parameters'
+                print('[WNG] bad parameters')
     
     def unblock_pin(self, pin_type=1, unblock_pin=''):
         '''
@@ -148,7 +148,7 @@ class SIM(ISO7816):
         and set 0000 value for new PIN
         call ISO7816 UNBLOCK_CHV method
         '''
-        print 'not correctly implemented'
+        print('not correctly implemented')
         return
         #if pin_type == 1: 
         #    pin_type = 0
@@ -160,7 +160,7 @@ class SIM(ISO7816):
                             [0x30, 0x30, 0x30, 0x30, 0xFF, 0xFF, 0xFF, 0xFF]) )
         else:
             if self.dbg: 
-                print '[WNG] bad parameters'
+                print('[WNG] bad parameters')
             #return self.UNBLOCK_CHV(P2=pin_type)
     
     def parse_file(self, Data=[]):
@@ -231,25 +231,25 @@ class SIM(ISO7816):
         '''
         if len(RAND) != 16:
             if self.dbg: 
-                print '[WNG] needs a 16 bytes input RAND value'
+                print('[WNG] needs a 16 bytes input RAND value')
             return None
         # select DF_GSM directory
         self.select([0x7F, 0x20])
         if self.coms()[2] != (0x90, 0x00): 
             if self.dbg: 
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
         # run authentication
         self.coms.push(self.INTERNAL_AUTHENTICATE(P1=0x00, P2=0x00, Data=RAND))
         if self.coms()[2][0] != 0x9F:
             if self.dbg: 
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
         # get authentication response
         self.coms.push(self.GET_RESPONSE(Le=self.coms()[2][1]))
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg: 
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
         SRES, Kc = self.coms()[3][0:4], self.coms()[3][4:]
         return [ SRES, Kc ]
@@ -265,27 +265,27 @@ class SIM(ISO7816):
         self.select([0x7F, 0x20])
         if self.coms()[2] != (0x90, 0x00): 
             if self.dbg: 
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
         
         # select IMSI file
         imsi = self.select([0x6F, 0x07])
         if self.coms()[2] != (0x90, 0x00): 
             if self.dbg: 
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
         
         # and parse the received data into the IMSI structure
-        if 'Data' in imsi.keys() and len(imsi['Data']) == 9:
+        if 'Data' in list(imsi.keys()) and len(imsi['Data']) == 9:
 
             if self.dbg:
-                print "[DBG] International Mobile Subscriber Identity (IMSI): %s " % decode_BCD(imsi['Data'])[3:]
+                print("[DBG] International Mobile Subscriber Identity (IMSI): %s " % decode_BCD(imsi['Data'])[3:])
 
             return decode_BCD(imsi['Data'])[3:]
         
         # if issue with the content of the DF_IMSI file
         if self.dbg: 
-            print '[DBG] %s' % self.coms()
+            print('[DBG] %s' % self.coms())
         return None
 
     # This contains Ciphering Key for GSM
@@ -297,19 +297,19 @@ class SIM(ISO7816):
         self.select([0x7F, 0x20])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
         Kc = self.select([0x6F, 0x20])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
-        if 'Data' in Kc.keys() and len(Kc['Data']) == 9:
+        if 'Data' in list(Kc.keys()) and len(Kc['Data']) == 9:
             if self.dbg:
-                print "[DBG] Ciphering Key (Kc): %s" % b2a_hex(byteToString(Kc['Data'][0:8]))
-                print "[DBG] Ciphering Key Sequence Number (n): %s " % Kc['Data'][8]
+                print("[DBG] Ciphering Key (Kc): %s" % b2a_hex(byteToString(Kc['Data'][0:8])))
+                print("[DBG] Ciphering Key Sequence Number (n): %s " % Kc['Data'][8])
             return Kc['Data']
         else:
             return None
@@ -327,30 +327,30 @@ class SIM(ISO7816):
         self.select([0x7F, 0x20])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
         loci = self.select([0x6F, 0x7E])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
-        if 'Data' in loci.keys() and len(loci['Data']) == 11:
+        if 'Data' in list(loci.keys()) and len(loci['Data']) == 11:
             loci = loci['Data']
 
             if self.dbg:
-                print "[DBG] Temporary Mobile Subscriber Identity (TMSI): %s" % b2a_hex(byteToString(loci[0:4]))
+                print("[DBG] Temporary Mobile Subscriber Identity (TMSI): %s" % b2a_hex(byteToString(loci[0:4])))
                 LAI = loci[4:9]
-                print "[DBG] Location Area Identity hex (LAI): %s" % b2a_hex(byteToString(LAI))
+                print("[DBG] Location Area Identity hex (LAI): %s" % b2a_hex(byteToString(LAI)))
                 MCC = ((LAI[0] & 0x0f) << 8) | (LAI[0] & 0xf0) | (LAI[1] & 0x0f)
                 MNC = ((LAI[2] & 0x0f) << 8) | (LAI[2] & 0xf0) | ((LAI[1] & 0xf0) >> 4)
                 LAC = LAI[3:5]
-                print "[DBG] Mobile Country Code (MCC): %s " % format(int(hex(MCC),16),"x")
-                print "[DBG] Mobile Country Code (MNC): %s " % format(int(hex(MNC),16),"x")
-                print "[DBG] Location Area Code (LAC): %s " % b2a_hex(byteToString(LAC))
-                print "[DBG] TMSI TIME: %s" % loci[9]
-                print "[DBG] Location Update Status: %s" % loci[10]
+                print("[DBG] Mobile Country Code (MCC): %s " % format(int(hex(MCC),16),"x"))
+                print("[DBG] Mobile Country Code (MNC): %s " % format(int(hex(MNC),16),"x"))
+                print("[DBG] Location Area Code (LAC): %s " % b2a_hex(byteToString(LAC)))
+                print("[DBG] TMSI TIME: %s" % loci[9])
+                print("[DBG] Location Update Status: %s" % loci[10])
 
             return loci
         else:
@@ -365,20 +365,20 @@ class SIM(ISO7816):
         self.select([0x7F, 0x20])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
         plmnsel = self.select([0x6F, 0x30])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
-        if 'Data' in plmnsel.keys():
+        if 'Data' in list(plmnsel.keys()):
             plmnsel = plmnsel['Data']
 
             if self.dbg:
-                print "[DBG] Stored PLMN selector:\tMCC | MNC\n"
+                print("[DBG] Stored PLMN selector:\tMCC | MNC\n")
                 index = 0
                 while len(plmnsel) > 3 and index < len(plmnsel):
                     if plmnsel[index] == 0xFF and plmnsel[index+1] == 0xFF and plmnsel[index+2] == 0xFF:
@@ -388,9 +388,9 @@ class SIM(ISO7816):
                         MNC = ((plmnsel[index+2] & 0x0f) << 8) | (plmnsel[index+2] & 0xf0) | ((plmnsel[index+1] & 0xf0) >> 4)
                         if (MNC & 0x000f) == 0x000f:
                             MNC = MNC >> 4
-                            print "[DBG] \t\t\t\t%03x   %02x" %(MCC, MNC)
+                            print("[DBG] \t\t\t\t%03x   %02x" %(MCC, MNC))
                         else:
-                            print "[DBG] \t\t\t\t%03x   %03x" %(MCC, MNC)
+                            print("[DBG] \t\t\t\t%03x   %03x" %(MCC, MNC))
                         index +=3
 
             return plmnsel
@@ -406,25 +406,25 @@ class SIM(ISO7816):
         self.select([0x7F, 0x20])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
         hpplmn = self.select([0x6F, 0x31])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
-        if 'Data' in hpplmn.keys() and len(hpplmn['Data']) == 1:
+        if 'Data' in list(hpplmn.keys()) and len(hpplmn['Data']) == 1:
             hpplmn = hpplmn['Data']
 
             if self.dbg:
                 if hpplmn[0] < 9:
-                    print "[DBG] Higher Priority PLMN search period %s min" % hpplmn[0]
+                    print("[DBG] Higher Priority PLMN search period %s min" % hpplmn[0])
                 else:
                     hpplmn_val = list(str(hpplmn[0]))
                     interval = (16 * int(hpplmn_val[0])) + int(hpplmn_val[1])
-                    print "[DBG] Higher Priority PLMN search period %s min" % interval
+                    print("[DBG] Higher Priority PLMN search period %s min" % interval)
 
             return hpplmn
         else:
@@ -438,20 +438,20 @@ class SIM(ISO7816):
         self.select([0x7F, 0x20])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
         acc = self.select([0x6F, 0x78])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
-        if 'Data' in acc.keys() and len(acc['Data']) == 2:
+        if 'Data' in list(acc.keys()) and len(acc['Data']) == 2:
             acc = acc['Data']
 
             if self.dbg:
-                print "[DBG] Access Control Classes %s " % b2a_hex(byteToString(acc))
+                print("[DBG] Access Control Classes %s " % b2a_hex(byteToString(acc)))
 
             return acc
         else:
@@ -466,16 +466,16 @@ class SIM(ISO7816):
         self.select([0x7F, 0x10])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
         msisdn = self.select([0x6F, 0x40])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
-        if 'Data' in msisdn.keys():
+        if 'Data' in list(msisdn.keys()):
             msisdns = msisdn['Data']
 
             if self.dbg:
@@ -486,11 +486,11 @@ class SIM(ISO7816):
                     TON_NPI = msisdn[rec_length + 1 : rec_length + 2][0]
                     npi = TON_NPI & 0x0F
                     ton  = (TON_NPI >> 4) & 0x07
-                    print "[DBG] Type of number (TON): %s " % ton
-                    print "[DBG] Numbering plan identification (NPI): %s " % npi
+                    print("[DBG] Type of number (TON): %s " % ton)
+                    print("[DBG] Numbering plan identification (NPI): %s " % npi)
 
                     dialing_number = msisdn[rec_length + 2 : rec_length + len_bcd_number + 1]
-                    print "[DBG] Dialling Number: %s " % decode_BCD(dialing_number)[:-2]
+                    print("[DBG] Dialling Number: %s " % decode_BCD(dialing_number)[:-2])
 
             return msisdns
         else:
@@ -506,16 +506,16 @@ class SIM(ISO7816):
         self.select([0x7F, 0x10])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
         smsp = self.select([0x6F, 0x42])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
-        if 'Data' in smsp.keys():
+        if 'Data' in list(smsp.keys()):
             smsps = smsp['Data']
 
             if self.dbg:
@@ -523,7 +523,7 @@ class SIM(ISO7816):
                     rec_length = len(smsp) - 28
                     rec_len = smsp[rec_length+13]
                     service_center_address = decode_BCD(smsp[rec_length+15:rec_length+rec_len + 14])[:-2]
-                    print "[DBG] TP-Service Centre Address: %s " % service_center_address
+                    print("[DBG] TP-Service Centre Address: %s " % service_center_address)
 
             return smsps
         else:
@@ -537,20 +537,20 @@ class SIM(ISO7816):
         self.select([0x7F, 0x20])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
         fplmn = self.select([0x6F, 0x7b])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
-        if 'Data' in fplmn.keys() and len(fplmn['Data']) == 12:
+        if 'Data' in list(fplmn.keys()) and len(fplmn['Data']) == 12:
             fplmn = fplmn['Data']
 
             if self.dbg:
-                print "[DBG] Stored FPLMN selector:\tMCC | MNC\n"
+                print("[DBG] Stored FPLMN selector:\tMCC | MNC\n")
                 index = 0
                 while len(fplmn) > 3 and index < len(fplmn):
                     if fplmn[index] == 0xFF and fplmn[index+1] == 0xFF and fplmn[index+2] == 0xFF:
@@ -560,9 +560,9 @@ class SIM(ISO7816):
                         MNC = ((fplmn[index+2] & 0x0f) << 8) | (fplmn[index+2] & 0xf0) | ((fplmn[index+1] & 0xf0) >> 4)
                         if (MNC & 0x000f) == 0x000f:
                             MNC = MNC >> 4
-                            print "[DBG] \t\t\t\t%03x   %02x" %(MCC, MNC)
+                            print("[DBG] \t\t\t\t%03x   %02x" %(MCC, MNC))
                         else:
-                            print "[DBG] \t\t\t\t%03x   %03x" %(MCC, MNC)
+                            print("[DBG] \t\t\t\t%03x   %03x" %(MCC, MNC))
                         index +=3
 
 
@@ -578,14 +578,14 @@ class SIM(ISO7816):
         iccid = self.select([0x2F, 0xE2])
         if self.coms()[2] != (0x90, 0x00):
             if self.dbg:
-                print '[DBG] %s' % self.coms()
+                print('[DBG] %s' % self.coms())
             return None
 
-        if 'Data' in iccid.keys() and len(iccid['Data']) == 10:
+        if 'Data' in list(iccid.keys()) and len(iccid['Data']) == 10:
             iccid = iccid['Data']
 
             if self.dbg:
-                print "[DBG] identification (ICCID): %s" % decode_BCD(iccid)
+                print("[DBG] identification (ICCID): %s" % decode_BCD(iccid))
 
             return iccid
         else:
