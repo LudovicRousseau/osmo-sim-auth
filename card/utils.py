@@ -24,6 +24,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 from collections import deque
 from smartcard.util import toBytes
+import sys
 
 # from python 2.6, format('b') allows to use 0b10010110 notation: 
 # much convinient
@@ -50,7 +51,11 @@ def stringToByte(string):
     '''
     bytelist = []
     for c in string:
-        bytelist.extend( toBytes(c.encode('hex')) )
+        if sys.version_info[0] < 3:
+            # Python 2
+            bytelist.extend( toBytes(c.encode('hex')) )
+        else:
+            bytelist.append(c)
     return bytelist
 
 # equivalent to the pyscard function "toASCIIString"
