@@ -23,7 +23,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #################################
 
 from collections import deque
-from smartcard.util import toBytes
+from smartcard.util import toBytes, toHexString, PACK
 import sys
 
 # from python 2.6, format('b') allows to use 0b10010110 notation: 
@@ -69,6 +69,15 @@ def byteToString(bytelist):
     for b in bytelist:
         string += chr(b)
     return string
+
+# equivalent to pyscard "toHexString"
+def byteToHex(bytelist):
+    '''
+    byteToHex([121, 150, 252, 108]) -> "5F638756"
+
+    converts a list of bytes into a string of hex
+    '''
+    return toHexString(bytelist, format=PACK)
 
 def LV_parser(bytelist):
     '''
