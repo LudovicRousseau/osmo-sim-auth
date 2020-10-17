@@ -53,20 +53,20 @@ class USIM(UICC):
         ISO7816.__init__(self, CLA=0x00)
         self.AID = []
         if self.dbg:
-            print '[DBG] type definition: %s' % type(self)
-            print '[DBG] CLA definition: %s' % hex(self.CLA)
+            print('[DBG] type definition: %s' % type(self))
+            print('[DBG] CLA definition: %s' % hex(self.CLA))
         
         # USIM selection from AID
-        print '[+] UICC AID found:'
+        print('[+] UICC AID found:')
         self.get_AID()
         for aid in self.AID:
             if  tuple(aid[0:5]) == (0xA0, 0x00, 0x00, 0x00, 0x87) \
             and tuple(aid[5:7]) == (0x10, 0x02) :
                 usim = self.select( Data=aid, typ='aid')
                 if usim is None: 
-                    print '[+] USIM AID selection failed'
+                    print('[+] USIM AID selection failed')
                 else: 
-                    print '[+] USIM AID selection succeeded\n'
+                    print('[+] USIM AID selection succeeded\n')
         
     def get_imsi(self):
         '''
@@ -80,12 +80,12 @@ class USIM(UICC):
         if imsi is None: 
             return None
         # and parse the received data into the IMSI structure
-        if 'Data' in imsi.keys() and len(imsi['Data']) == 9:
+        if 'Data' in list(imsi.keys()) and len(imsi['Data']) == 9:
             return decode_BCD(imsi['Data'])[3:]
         
         # if issue with the content of the DF_IMSI file
         if self.dbg: 
-            print '[DBG] %s' % self.coms()
+            print('[DBG] %s' % self.coms())
         return None
     
     def get_CS_keys(self):
@@ -103,7 +103,7 @@ class USIM(UICC):
                 KSI, CK, IK = ( EF_KEYS['Data'][0:1],
                                 EF_KEYS['Data'][1:17],
                                 EF_KEYS['Data'][17:33])
-                print '[+] Successful CS keys selection: Get [KSI, CK, IK]'
+                print('[+] Successful CS keys selection: Get [KSI, CK, IK]')
                 return [KSI, CK, IK]
             else: 
                 return EF_KEYS
@@ -124,7 +124,7 @@ class USIM(UICC):
                 KSI, CK, IK = ( EF_KEYSPS['Data'][0:1], 
                                 EF_KEYSPS['Data'][1:17], 
                                 EF_KEYSPS['Data'][17:33] )
-                print '[+] Successful PS keys selection: Get [KSI, CK, IK]'
+                print('[+] Successful PS keys selection: Get [KSI, CK, IK]')
                 return [KSI, CK, IK]
             else: 
                 return EF_KEYSPS
@@ -145,8 +145,8 @@ class USIM(UICC):
         if self.coms()[2] == (0x90, 0x00):
             if len(EF_GBABP['Data']) > 2:
                 #RAND, B_TID, Lifetime = LV_parser( EF_GBABP['Data'] )
-                print '[+] Successful GBA_BP selection: Get list of ' \
-                      '[RAND, B-TID, KeyLifetime]'
+                print('[+] Successful GBA_BP selection: Get list of ' \
+                      '[RAND, B-TID, KeyLifetime]')
                 #return (RAND, B_TID, Lifetime)
                 return LV_parser( EF_GBABP['Data'] )
             else: 
@@ -167,22 +167,22 @@ class USIM(UICC):
         GBA_BP = self.get_GBA_BP()
         for i in GBA_BP:
             if i == RAND:
-                print '[+] RAND found in GBA_BP'
+                print('[+] RAND found in GBA_BP')
                 # update transparent file with B_TID and key lifetime
                 self.coms.push( self.UPDATE_BINARY( P2=len(RAND)+1,
                                 Data=[len(B_TID)] + B_TID + \
                                 [len(key_lifetime)] + key_lifetime ))
                 if self.dbg > 1: 
-                    print '[DBG] %s' % self.coms()
+                    print('[DBG] %s' % self.coms())
                 if self.coms()[2] == 0x90 and self.dbg:
-                    print '[+] Successful GBA_BP update with B-TID ' \
-                          'and key lifetime'
+                    print('[+] Successful GBA_BP update with B-TID ' \
+                          'and key lifetime')
                 if self.dbg > 2: 
-                    print '[DBG] new value of EF_GBA_BP:\n%s' \
-                          % self.get_GBA_BP()
+                    print('[DBG] new value of EF_GBA_BP:\n%s' \
+                          % self.get_GBA_BP())
             else:
                 if self.dbg: 
-                    print '[+] RAND not found in GBA_BP'
+                    print('[+] RAND not found in GBA_BP')
                 return GBA_BP
     
     def get_GBA_NL(self):
@@ -215,8 +215,8 @@ class USIM(UICC):
                             B_TID = tlv[2]
                     values.append( [NAF_ID, B_TID] )
                 
-                print '[+] Successful GBA_NL selection: ' \
-                      'Get list of [NAF_ID, B-TID]'
+                print('[+] Successful GBA_NL selection: ' \
+                      'Get list of [NAF_ID, B-TID]')
                 #return (NAF_ID, B_TID)
                 return values
             else: 
@@ -242,7 +242,7 @@ class USIM(UICC):
         # prepare input data for authentication
         if ctx in ('3G', 'VGCS', 'GBA', 'MBMS') and len(RAND) != 16 \
         and len(AUTN) != 16: 
-            print '[ERR] missing parameters or wrong length'
+            print('[ERR] missing parameters or wrong length')
             return None
         
         inp = []
@@ -250,10 +250,10 @@ class USIM(UICC):
             P2 = 0x81
         elif ctx == 'VGCS':
             P2 = 0x82
-            print '[+] Not implemented. Exit.'
+            print('[+] Not implemented. Exit.')
             return None
         elif ctx == 'MBMS':
-            print '[+] Not implemented. Exit.'
+            print('[+] Not implemented. Exit.')
             return None
         elif ctx == 'GBA': 
             P2 = 0x84
@@ -264,7 +264,7 @@ class USIM(UICC):
         # to avoid desynchronizing our USIM counter
             P2 = 0x80
             if len(RAND) != 16: 
-                print '[ERR] RAND has wrong length (%d, should be 16)' % len(RAND)
+                print('[ERR] RAND has wrong length (%d, should be 16)' % len(RAND))
                 return None
             # override input value for 2G authent
             inp = [len(RAND)] + RAND
@@ -276,7 +276,7 @@ class USIM(UICC):
                 val = self.coms()[3]
                 if P2 == 0x80:
                     if self.dbg: 
-                        print '[+] Successful 2G authentication. Get [RES, Kc]'
+                        print('[+] Successful 2G authentication. Get [RES, Kc]')
                     values = LV_parser(val)
                     # returned values are (RES, Kc)
                     return values
@@ -284,25 +284,25 @@ class USIM(UICC):
                 if val[0] == 0xDB:
                     if self.dbg:
                         if P2 == 0x81:
-                            print '[+] Successful 3G authentication. ' \
-                                  'Get [RES, CK, IK(, Kc)]'
+                            print('[+] Successful 3G authentication. ' \
+                                  'Get [RES, CK, IK(, Kc)]')
                         elif P2 == 0x84:
-                            print '[+] Successful GBA authentication. Get [RES]'
+                            print('[+] Successful GBA authentication. Get [RES]')
                         else:
-                            print '[+] response: %s' % hex(val)
+                            print('[+] response: %s' % hex(val))
                     values = LV_parser(val[1:])
                     # returned values can be (RES, CK, IK) or (RES, CK, IK, Kc)
                     return values
                 elif val[0] == 0xDC:
                     if self.dbg: 
-                        print '[+] Synchronization failure. Get [AUTS]'
+                        print('[+] Synchronization failure. Get [AUTS]')
                     values = LV_parser(val[1:])
                     return values
                 elif self.dbg:
-                    print '[+] response: %s' % hex(val)
+                    print('[+] response: %s' % hex(val))
         #else:
         if self.dbg: 
-            print '[+] authentication error: %s' % self.coms()
+            print('[+] authentication error: %s' % self.coms())
         return None
     
     def GBA_derivation(self, NAF_ID=[], IMPI=[]):
@@ -337,11 +337,11 @@ class USIM(UICC):
                 val = self.coms()[3]
                 if val[0] == 0xDB: # not adapted to 2G context with Kc, RES
                     if self.dbg: 
-                        print '[+] Successful GBA derivation. Get [Ks_EXT_NAF]'
+                        print('[+] Successful GBA derivation. Get [Ks_EXT_NAF]')
                     values = LV_parser(val[1:])
                     return values
         if self.dbg: 
-            print '[DBG] authentication failure: %s' % self.coms()
+            print('[DBG] authentication failure: %s' % self.coms())
         return None
     
     def bf_FS_from_init( self, filename='bf_USIM', file_dict=USIM_app_FS, 
@@ -368,11 +368,11 @@ class USIM(UICC):
                 # if file characteristics is readable
                 if fil is not None:
                     if self.dbg:
-                        print '[+] USIM file found at address %s %s' % (i, j)
+                        print('[+] USIM file found at address %s %s' % (i, j))
                     # warning when working with DF recursivity
-                    if (i, j) in file_dict.keys():
+                    if (i, j) in list(file_dict.keys()):
                         fil['name'] = file_dict[(i, j)][0]
-                    k = fil.keys()
+                    k = list(fil.keys())
                     k.sort()
                     fd.write('\n')
                     for key in k:
@@ -380,16 +380,16 @@ class USIM(UICC):
                 # if file exists but special conditions are returned
                 if self.coms()[2] not in ((0x6A, 0x82), (0x90, 0x00)):
                     if self.dbg:
-                        print '[+] special condition %s when selecting' \
+                        print('[+] special condition %s when selecting' \
                         ' / reading USIM file at address %s %s' \
-                        % ( self.coms()[2], i, j )
+                        % ( self.coms()[2], i, j ))
                     fd.write('\n')
                     fd.write('file exists at address: %s %s\n' \
                              % (hex(i)[2:], hex(j)[2:]))
                     fd.write('%s\n' % self.coms()[1])
                     
                 if self.dbg and (i % 0x10 == 0 and j % 0x40 == 0): 
-                    print '[-] going over address %s %s' % (i, j)
+                    print('[-] going over address %s %s' % (i, j))
         
         fd.write('\n')
         fd.close()
