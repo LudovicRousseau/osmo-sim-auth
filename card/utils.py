@@ -26,12 +26,12 @@ from collections import deque
 from smartcard.util import toBytes, toHexString, PACK
 import sys
 
-# from python 2.6, format('b') allows to use 0b10010110 notation: 
+# from python 2.6, format('b') allows to use 0b10010110 notation:
 # much convinient
 def byteToBit(byte):
     '''
     byteToBit(0xAB) -> [1, 0, 1, 0, 1, 0, 1, 1]
-    
+
     converts a byte integer value into a list of bits
     '''
     bit = [0, 0, 0, 0, 0, 0, 0, 0]
@@ -46,7 +46,7 @@ def byteToBit(byte):
 def stringToByte(string):
     '''
     stringToByte('test') -> [116, 101, 115, 116]
-    
+
     converts a string into a list of bytes
     '''
     bytelist = []
@@ -62,7 +62,7 @@ def stringToByte(string):
 def byteToString(bytelist):
     '''
     byteToString([116, 101, 115, 116]) -> 'test'
-    
+
     converts a list of bytes into a string
     '''
     string = ''
@@ -82,7 +82,7 @@ def byteToHex(bytelist):
 def LV_parser(bytelist):
     '''
     LV_parser([0x02, 0xAB, 0xCD, 0x01, 0x12, 0x34]) -> [[171, 205], [18], []]
-    
+
     parses Length-Value records in a list of bytes
     returns a list of list of bytes
     length coded on 1 byte
@@ -97,8 +97,8 @@ def LV_parser(bytelist):
 def first_TLV_parser(bytelist):
     '''
     first_TLV_parser([0xAA, 0x02, 0xAB, 0xCD, 0xFF, 0x00]) -> (170, 2, [171, 205])
-    
-    parses first TLV format record in a list of bytelist 
+
+    parses first TLV format record in a list of bytelist
     returns a 3-Tuple: Tag, Length, Value
     Value is a list of bytes
     parsing of length is ETSI'style 101.220
@@ -115,7 +115,7 @@ def first_TLV_parser(bytelist):
 def TLV_parser(bytelist):
     '''
     TLV_parser([0xAA, ..., 0xFF]) -> [(T, L, [V]), (T, L, [V]), ...]
-    
+
     loops on the input list of bytes with the "first_TLV_parser()" function
     returns a list of 3-Tuples
     '''
@@ -127,17 +127,17 @@ def TLV_parser(bytelist):
             break
         ret.append( (T, L, V) )
         # need to manage length of L
-        if L > 0xFE: 
+        if L > 0xFE:
             bytelist = bytelist[ L+4 : ]
-        else: 
+        else:
             bytelist = bytelist[ L+2 : ]
     return ret
 
 def first_BERTLV_parser(bytelist):
     '''
-    first_BERTLV_parser([0xAA, 0x02, 0xAB, 0xCD, 0xFF, 0x00]) 
+    first_BERTLV_parser([0xAA, 0x02, 0xAB, 0xCD, 0xFF, 0x00])
         -> ([1, 'contextual', 'constructed', 10], [1, 2], [171, 205])
-    
+
     parses first BER-TLV format record in a list of bytes
     returns a 3-Tuple: Tag, Length, Value
         Tag: [Tag class, Tag DO, Tag number]
@@ -170,12 +170,12 @@ def first_BERTLV_parser(bytelist):
     # Tag coded with 1 byte
     else:
         Tag_bits = byte0[3:8]
-    
-    # Tag number calculation 
+
+    # Tag number calculation
     Tag_num = 0
     for j in range(len(Tag_bits)):
         Tag_num += Tag_bits[len(Tag_bits)-j-1] * pow(2, j)
-    
+
     # Length coded with more than 1 byte
     if bytelist[i+1] & 0x80 > 0:
         Len_num = bytelist[i+1] - 0x80
@@ -196,14 +196,14 @@ def first_BERTLV_parser(bytelist):
 def BERTLV_parser(bytelist):
     '''
     BERTLV_parser([0xAA, ..., 0xFF]) -> [([T], L, [V]), ([T], L, [V]), ...]
-    
+
     loops on the input bytes with the "first_BERTLV_parser()" function
     returns a list of 3-Tuples containing BERTLV records
     '''
     ret = []
     while len(bytelist) > 0:
         T, L, V = first_BERTLV_parser(bytelist)
-        #if T == 0xFF: 
+        #if T == 0xFF:
         #    break # padding bytes
         ret.append( (T[1:], L[1], V) )
         # need to manage lengths of Tag and Length
@@ -213,14 +213,14 @@ def BERTLV_parser(bytelist):
 def decode_BCD(data=[]):
     '''
     decode_BCD([0x21, 0xFE, 0xA3]) -> '121415310'
-    
+
     to decode serial number (IMSI, ICCID...) from list of bytes
     '''
     string = ''
     for B in data:
         string += str( B & 0x0F )
         string += str( B >> 4 )
-    return string 
+    return string
 
 
 #######################################################
@@ -230,10 +230,10 @@ class apdu_stack:
     '''
     input / output wrapping class
     for APDU communications
-    
+
     allows to keep track of communications
     and exchanged commands
-    
+
     based on the python "deque" fifo-like object
     '''
 
@@ -242,13 +242,13 @@ class apdu_stack:
         initializes apdu_stack with the maximum of IO to keep track of
         '''
         self.apdu_stack  = deque([], limit)
-        
+
     def push(self, apdu_response):
         '''
         stacks the returned response into the apdu_stack
         '''
         self.apdu_stack.append( apdu_response )
-    
+
     def __repr__(self):
         '''
         represents the whole stack of responses pushed on
@@ -257,10 +257,9 @@ class apdu_stack:
         for apdu in self.apdu_stack:
             s += apdu.__repr__() + '\n'
         return s
-    
+
     def __call__(self):
         '''
         calling the apdu_stack returns the last response pushed on it
         '''
         return self.apdu_stack[-1]
-
